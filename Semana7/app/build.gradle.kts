@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("kotlin-kapt") // Añadir esta línea
+
 }
 
 android {
@@ -48,9 +50,11 @@ android {
         }
     }
 }
-
+val room_version = "2.6.1"
 dependencies {
-
+    implementation("androidx.room:room-ktx:2.6.1")
+    annotationProcessor("androidx.room:room-compiler:$room_version") // Para Java
+    kapt("androidx.room:room-compiler:$room_version") // Para Kotlin y KSP
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
