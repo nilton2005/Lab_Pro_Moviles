@@ -1,5 +1,7 @@
 package com.example.myapplication
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -36,8 +40,9 @@ import com.example.myapplication.data.Product
 import com.example.myapplication.data.ProductDao
 import com.example.myapplication.data.ProductDatabase
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.withContext
 @Composable
 fun ScreenProductWithScaffold() {
     val context = LocalContext.current
@@ -48,6 +53,8 @@ fun ScreenProductWithScaffold() {
     var brand by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var productList = remember { mutableStateOf<List<Product>>(emptyList()) } // Aquí definimos productList
+    var isEditMode by remember { mutableStateOf(false) }
+    var selectedProduct by remember { mutableStateOf<Long?>(null) }
 
     db = Room.databaseBuilder(
         context,
@@ -56,6 +63,17 @@ fun ScreenProductWithScaffold() {
     ).build()
     val dao = db.productDao()
     val coroutineScope = rememberCoroutineScope()
+
+    val onEditProduct: (Product) -> Unit = { product ->
+        name = product.name
+        price = product.price.toString()
+        provider = product.provider
+        brand = product.brand
+        date = product.date
+        isEditMode = true
+        selectedProduct = product.id.toLong()
+    }
+
 
     Scaffold(
         topBar = {
@@ -68,6 +86,7 @@ fun ScreenProductWithScaffold() {
                     Button(
                         onClick = {
                             val product = Product(
+                                id = selectedProduct?.toInt() ?: 0,
                                 name = name,
                                 price = price.toDouble(),
                                 provider = provider,
@@ -75,16 +94,35 @@ fun ScreenProductWithScaffold() {
                                 date = date
                             )
                             coroutineScope.launch {
-                                dao.insertProduct(product)
+                                if(isEditMode){
+                                    dao.updateProduct(product)
+                                    isEditMode = false
+                                    selectedProduct = null
+                                }else{
+                                    dao.insertProduct(product)
+                                }
                                 refreshProducts(dao, productList) // Aquí se actualiza productList
+
                             }
-                            clearFields()
+                            clearFields(
+                                onNameChange = { name = it },
+                                onPriceChange = { price = it },
+                                onProviderChange = { provider = it },
+                                onBrandChange = { brand = it },
+                                onDateChange = { date = it }
+                            )
                         }
                     ) {
-                        Text("Agregar Producto", fontSize = 16.sp)
+                        Text(if(isEditMode)"Editar Producto" else "Agregar Producto" , fontSize = 16.sp)
                     }
                 }
-                ProductList(products = productList.value, dao = dao, coroutineScope, productList)
+                ProductList(
+                    products = productList.value,
+                    dao = dao,
+                    coroutineScope,
+                    productList,
+                    onEditProduct
+                )
             }
         },
         content = { innerPadding ->
@@ -117,37 +155,52 @@ fun ProductList(
     products: List<Product>, dao:
     ProductDao,
     coroutineScope: CoroutineScope,
-    productList: MutableState<List<Product>>
-    
+    productList: MutableState<List<Product>>,
+    onEditProduct: (Product) -> Unit
+
 ) {
     LazyColumn {
         itemsIndexed(products) { index, product ->
-            Row(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(8.dp), // Espacio alrededor de cada tarjeta
+                shape = RoundedCornerShape(8.dp) // Bordes redondeados
             ) {
-                Text(text = "${product.name} - ${product.price}", modifier = Modifier.weight(1f))
-
-                IconButton(onClick = {
-                    coroutineScope.launch {
-                        dao.deleteProductById(product.id.toLong())
-                        refreshProducts(dao, productList = productList )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp) // Espacio interno para que el contenido no toque los bordes de la tarjeta
+                ) {
+                    Text(
+                        text = "${product.name} - ${product.price}",
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            dao.deleteProductById(product.id.toLong())
+                            refreshProducts(dao, productList = productList)
+                        }
+                    }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete")
                     }
-                }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+
+
                 }
 
-                IconButton(onClick = {
-                    // Acciones para editar
-                }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit")
+                    IconButton(onClick = {
+                        // Acciones para editar
+                        onEditProduct(product)
+                    }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                    }
                 }
             }
         }
     }
 
-}
+
+
 
 @Composable
 fun ProductInputFields(
@@ -202,7 +255,17 @@ suspend fun refreshProducts(dao: ProductDao, productList: MutableState<List<Prod
     val products = dao.getAllProducts()
     productList.value = products
 }
-
-fun clearFields() {
+fun clearFields(
+    onNameChange: (String) -> Unit,
+    onPriceChange: (String) -> Unit,
+    onProviderChange: (String) -> Unit,
+    onBrandChange: (String) -> Unit,
+    onDateChange: (String) -> Unit
+) {
     // Limpia los campos de entrada
+    onNameChange("")
+    onPriceChange("")
+    onProviderChange("")
+    onBrandChange("")
+    onDateChange("")
 }
