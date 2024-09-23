@@ -53,8 +53,11 @@ android {
 val room_version = "2.6.1"
 dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.runtime.livedata)
     annotationProcessor("androidx.room:room-compiler:$room_version") // Para Java
     kapt("androidx.room:room-compiler:$room_version") // Para Kotlin y KSP
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
