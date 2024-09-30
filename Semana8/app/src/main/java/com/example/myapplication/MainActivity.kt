@@ -157,7 +157,7 @@ fun TaskScreen(viewModel: TaskViewModel, navController: NavHostController) {
                     }
 
                     // Ícono para eliminar
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { viewModel.deleteTask(task) }) {
                         Icon(Icons.Default.Delete, contentDescription = "Eliminar tarea")
                     }
                 }

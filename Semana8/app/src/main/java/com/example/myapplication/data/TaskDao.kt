@@ -1,6 +1,7 @@
 package com.example.myapplication.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -22,6 +23,8 @@ interface TaskDao {
    @Query("SELECT * FROM tasks WHERE id = :taskId")
    suspend fun getTaskById(taskId: Int): Task?
 
-   
+   @Delete
+   suspend fun deleteTask(tasks: Task)
+
 
 }

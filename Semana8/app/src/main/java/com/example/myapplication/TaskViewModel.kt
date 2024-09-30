@@ -54,6 +54,14 @@ class TaskViewModel(private val dao: TaskDao): ViewModel() {
         }
     }
 
+    fun deleteTask(task: Task)= viewModelScope.launch {
+        withContext(Dispatchers.IO) {
+            dao.deleteTask(task)
+            _tasks.value = dao.getAllTasks()
+        }
+
+    }
+
 
 
 }
