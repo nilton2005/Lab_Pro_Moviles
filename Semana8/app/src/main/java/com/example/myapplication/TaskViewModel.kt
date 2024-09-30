@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.Task
 import com.example.myapplication.data.TaskDao
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class TaskViewModel(private val dao: TaskDao): ViewModel() {
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
@@ -40,6 +43,17 @@ class TaskViewModel(private val dao: TaskDao): ViewModel() {
             _tasks.value = emptyList() // Actualiza la lista de tareas
         }
     }
+    // edit task
+    fun updateTask(task: Task) = viewModelScope.launch {
+        dao.updateTask(task)
+        _tasks.value = dao.getAllTasks()
+    }
+    suspend fun getTaskById(taskId: Int): Task? {
+        return withContext(Dispatchers.IO) {
+            dao.getTaskById(taskId)
+        }
+    }
+
 
 
 }

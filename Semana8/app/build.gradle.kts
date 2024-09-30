@@ -53,6 +53,7 @@ val room_version = "2.6.1"
 dependencies {
 
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation(libs.androidx.navigation.compose)
     annotationProcessor("androidx.room:room-compiler:$room_version") // Para Java
     kapt("androidx.room:room-compiler:$room_version") // Para Kotlin y KSP
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
