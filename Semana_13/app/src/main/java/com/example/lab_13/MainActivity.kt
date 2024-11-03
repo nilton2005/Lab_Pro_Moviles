@@ -4,23 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.lab_13.ui.theme.Lab_13Theme
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
@@ -30,10 +13,8 @@ import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationConstants.DefaultDurationMillis
 import androidx.compose.animation.core.EaseIn
 import androidx.compose.animation.core.EaseOut
-import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -52,13 +33,10 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -74,23 +52,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -98,6 +68,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Rect
@@ -109,6 +80,8 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextMotion
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -117,11 +90,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.lab_13.ui.theme.Lab_13Theme
+import kotlinx.coroutines.launch
 import java.net.URLDecoder
 import java.net.URLEncoder
 import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
-import kotlin.time.Duration
 
 
 class MainActivity : ComponentActivity() {
@@ -138,8 +111,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
 @Preview
 @Composable
 fun AnimationExamplesScreen() {
@@ -147,9 +118,56 @@ fun AnimationExamplesScreen() {
         modifier =  Modifier.background(color= Color.Black)
     ) {
 
-        AnimatedVisibilityCookbook()
+        MyAnimatedComposable()
     }
 }
+
+
+@Composable
+fun MyAnimatedComposable(
+
+) {
+    var visible by remember {
+        mutableStateOf(true)
+    }
+    val targetSize by animateDpAsState(
+        targetValue = if (visible) 300.dp else 0.dp,
+        animationSpec = tween(durationMillis = 2000)
+    )
+    val targetOffset by animateDpAsState(
+        targetValue = if (visible) 0.dp else 100.dp,
+        animationSpec = tween(durationMillis = 2000)
+    )
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ){
+
+        Box(
+            modifier = Modifier
+                .size(targetSize) 
+                .offset(y = targetOffset)
+                .background(Color.Blue),
+            contentAlignment = Alignment.Center,
+        ){
+        }
+        Box(
+            modifier = Modifier.fillMaxSize(),
+
+            ){
+
+            Button(
+                modifier = Modifier.align(Alignment.BottomCenter,
+                )    ,onClick = { visible = !visible }) {
+                Text("Toggle Visibility")
+            }
+        }
+    }
+
+
+}
+
 
 @Preview
 @Composable
@@ -165,18 +183,18 @@ fun AnimatedVisibilityCookbook(
     ) {
         // [START android_compose_animation_cookbook_visibility]
         var visible by remember {
-            mutableStateOf(true)
+            mutableStateOf(false)
         }
 
         val backgroundColor by animateColorAsState(
-            targetValue = if (visible) Color.White else Color.Red,
+            targetValue = if (visible) Color.Green else Color.Red,
             animationSpec = tween(durationMillis = durationMillis),
         )
         // Animated visibility will eventually remove the item from the composition once the animation has finished.
         AnimatedVisibility(
             visible = visible,
             enter = slideInHorizontally(
-                animationSpec = tween(durationMillis = durationMillis, easing = EaseIn),
+                animationSpec = tween(durationMillis = durationMillis, easing = FastOutSlowInEasing),
             initialOffsetX = { fullHeight -> -fullHeight }
         ),
         exit = slideOutHorizontally(
@@ -191,7 +209,6 @@ fun AnimatedVisibilityCookbook(
             // [START_EXCLUDE]
             Box(
                 modifier = Modifier
-                    .size(200.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(backgroundColor)
             ) {
