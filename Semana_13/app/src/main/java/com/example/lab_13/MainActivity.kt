@@ -270,6 +270,7 @@ fun ButtonsWhichtAnimation() {
             Box(
                 modifier = Modifier
                     .size(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
                     .background(
                         color = when (state) {
                             ScreenState.CARGANDO -> Color.Yellow
